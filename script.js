@@ -295,7 +295,7 @@ class XiaoguiLocator {
 
         container.innerHTML = sortedMarkers.map(marker => {
             const time = this.formatTime(new Date(marker.createdAt));
-            const folder = this.folders.find(f => f.id === marker.folderId);
+            const folder = marker.folderId ? this.folders.find(f => parseInt(f.id) === parseInt(marker.folderId)) : null;
             const folderName = folder ? folder.name : '未分类';
             return `
                 <div class="marker-card" data-id="${marker.id}">
@@ -480,11 +480,11 @@ class XiaoguiLocator {
 
     deleteFolder(folderId) {
         this.markers.forEach(marker => {
-            if (marker.folderId === folderId) {
+            if (marker.folderId && parseInt(marker.folderId) === parseInt(folderId)) {
                 marker.folderId = null;
             }
         });
-        this.folders = this.folders.filter(f => f.id !== folderId);
+        this.folders = this.folders.filter(f => parseInt(f.id) !== parseInt(folderId));
         this.saveFolders();
         this.saveMarkers();
         this.renderFolders();
@@ -492,7 +492,7 @@ class XiaoguiLocator {
     }
 
     renameFolder(folderId, newName) {
-        const folder = this.folders.find(f => f.id === folderId);
+        const folder = this.folders.find(f => parseInt(f.id) === parseInt(folderId));
         if (folder) {
             folder.name = newName;
             this.saveFolders();
@@ -540,7 +540,7 @@ class XiaoguiLocator {
         }
 
         container.innerHTML = this.folders.map(folder => {
-            const count = this.markers.filter(m => m.folderId === folder.id).length;
+            const count = this.markers.filter(m => m.folderId && parseInt(m.folderId) === parseInt(folder.id)).length;
             return `
                 <div class="folder-item" data-id="${folder.id}">
                     <div class="folder-color" style="background-color: ${folder.color}"></div>
@@ -573,12 +573,20 @@ class XiaoguiLocator {
 
     openMoveModal(id) {
         const marker = this.markers.find(m => m.id === id);
-        if (!marker) return;
+        if (!marker) {
+            console.log('Marker not found:', id);
+            return;
+        }
 
         this.movingMarkerId = id;
-        const folderOptions = this.folders.map(folder => 
-            `<option value="${folder.id}" ${marker.folderId === folder.id ? 'selected' : ''}>${folder.name}</option>`
-        ).join('');
+        console.log('Opening move modal for marker:', id, 'current folderId:', marker.folderId);
+        console.log('Available folders:', this.folders);
+        
+        const folderOptions = this.folders.map(folder => {
+            const isSelected = marker.folderId && parseInt(marker.folderId) === parseInt(folder.id);
+            console.log(`Folder ${folder.name} (${folder.id}): selected=${isSelected}`);
+            return `<option value="${folder.id}" ${isSelected ? 'selected' : ''}>${folder.name}</option>`;
+        }).join('');
 
         const modalHtml = `
             <div class="modal-overlay" id="moveModalOverlay" style="display: flex;">
@@ -623,7 +631,7 @@ class XiaoguiLocator {
     }
 
     openRenameFolderModal(id) {
-        const folder = this.folders.find(f => f.id === id);
+        const folder = this.folders.find(f => parseInt(f.id) === parseInt(id));
         if (!folder) return;
 
         const modalHtml = `
