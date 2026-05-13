@@ -32,7 +32,9 @@ class XiaoguiLocator {
             scrollWheelZoom: true,
             touchZoom: true,
             doubleClickZoom: true,
-            dragging: true
+            dragging: true,
+            maxZoom: 18,
+            minZoom: 3
         }).setView([35.8617, 104.1954], 5);
 
         L.tileLayer('https://webrd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}', {
@@ -84,18 +86,6 @@ class XiaoguiLocator {
             }).addTo(this.map);
 
             this.currentMarker.bindPopup(`<b>📍 当前位置</b><br>纬度: ${this.currentPosition.latitude.toFixed(6)}<br>经度: ${this.currentPosition.longitude.toFixed(6)}<br>精度: ${this.currentPosition.accuracy}m`);
-
-            const allPoints = [{ lat: this.currentPosition.latitude, lng: this.currentPosition.longitude }];
-            this.markers.forEach(m => {
-                allPoints.push({ lat: m.latitude, lng: m.longitude });
-            });
-
-            if (allPoints.length > 1) {
-                const bounds = L.latLngBounds(allPoints.map(p => [p.lat, p.lng]));
-                this.map.fitBounds(bounds, { padding: [30, 30], maxZoom: 18 });
-            } else {
-                this.map.setView([this.currentPosition.latitude, this.currentPosition.longitude], 15);
-            }
         }
     }
 
