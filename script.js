@@ -25,7 +25,15 @@ class XiaoguiLocator {
     }
 
     initMap() {
-        this.map = L.map('map').setView([35.8617, 104.1954], 5);
+        this.map = L.map('map', {
+            center: [35.8617, 104.1954],
+            zoom: 5,
+            zoomControl: true,
+            scrollWheelZoom: true,
+            touchZoom: true,
+            doubleClickZoom: true,
+            dragging: true
+        }).setView([35.8617, 104.1954], 5);
 
         L.tileLayer('https://webrd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}', {
             subdomains: '1234',

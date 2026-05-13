@@ -50,6 +50,11 @@ body {
     height: 280px;
     border-radius: 14px;
     overflow: hidden;
+    touch-action: manipulation;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
 }
 
 .map-legend {
