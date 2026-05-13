@@ -34,7 +34,8 @@ class XiaoguiLocator {
             doubleClickZoom: true,
             dragging: true,
             maxZoom: 18,
-            minZoom: 3
+            minZoom: 3,
+            bounceAtZoomLimits: false
         }).setView([35.8617, 104.1954], 5);
 
         L.tileLayer('https://webrd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}', {
@@ -43,6 +44,7 @@ class XiaoguiLocator {
         }).addTo(this.map);
 
         this.map.zoomControl.setPosition('bottomright');
+        this.map.invalidateSize();
     }
 
     updateMap() {

@@ -50,7 +50,7 @@ body {
     height: 280px;
     border-radius: 14px;
     overflow: hidden;
-    touch-action: manipulation;
+    touch-action: pan-x pan-y pinch-zoom;
     -webkit-user-select: none;
     -moz-user-select: none;
     -ms-user-select: none;
