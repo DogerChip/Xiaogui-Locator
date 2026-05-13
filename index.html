@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>小龟定位器</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>� 小龟定位器</h1>
+            <p>记录足迹 · 轻松定位</p>
+        </header>
+
+        <div class="map-section">
+            <div id="map" class="map-container"></div>
+            <div class="map-legend">
+                <div class="legend-item">
+                    <span class="legend-dot current-dot"></span>
+                    <span>当前位置</span>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-dot marker-dot"></span>
+                    <span>历史标记</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="location-section">
+            <div class="current-location">
+                <div class="location-header">
+                    <span class="location-icon">📍</span>
+                    <span class="location-title">当前位置</span>
+                </div>
+                <div class="location-info" id="currentLocation">
+                    <div class="loading-text">正在获取位置...</div>
+                </div>
+                <div class="location-coords" id="currentCoords"></div>
+            </div>
+
+            <button id="markButton" class="mark-button">
+                <span class="button-icon">📌</span>
+                <span class="button-text">标记当前位置</span>
+            </button>
+        </div>
+
+        <div class="last-record-section" id="lastRecordSection" style="display: none;">
+            <div class="last-record-time">
+                <span class="time-icon">⏰</span>
+                <span class="time-text">距上次定位：</span>
+                <span id="timeInterval" class="time-value">-</span>
+            </div>
+        </div>
+
+        <div class="markers-section">
+            <div class="section-header">
+                <h3>📋 我的标记</h3>
+                <span class="marker-count" id="markerCount">0</span>
+            </div>
+            <div class="markers-list" id="markersList">
+                <div class="empty-state">
+                    <div class="empty-icon">🗺️</div>
+                    <p>暂无标记</p>
+                    <p class="empty-hint">点击上方按钮记录您的位置</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-overlay" id="modalOverlay" style="display: none;">
+            <div class="modal">
+                <div class="modal-header">
+                    <h4>重命名标记</h4>
+                    <button class="modal-close" id="modalClose">✕</button>
+                </div>
+                <div class="modal-body">
+                    <input type="text" id="markerNameInput" placeholder="输入标记名称">
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-cancel" id="btnCancel">取消</button>
+                    <button class="btn btn-confirm" id="btnConfirm">确认</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-overlay" id="deleteModalOverlay" style="display: none;">
+            <div class="modal modal-danger">
+                <div class="modal-header">
+                    <h4>确认删除</h4>
+                    <button class="modal-close" id="deleteModalClose">✕</button>
+                </div>
+                <div class="modal-body">
+                    <p>确定要删除这个标记吗？此操作无法撤销。</p>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-cancel" id="btnDeleteCancel">取消</button>
+                    <button class="btn btn-delete" id="btnDeleteConfirm">删除</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
