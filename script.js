@@ -426,11 +426,11 @@ class XiaoguiLocator {
     }
 
     saveMarkers() {
-        localStorage.setItem('xiaoguiMarkers', JSON.stringify(this.markers));
+        localStorage.setItem('xiaoguiLocatorMarkers', JSON.stringify(this.markers));
     }
 
     loadMarkers() {
-        const saved = localStorage.getItem('xiaoguiMarkers');
+        const saved = localStorage.getItem('xiaoguiLocatorMarkers');
         return saved ? JSON.parse(saved) : [];
     }
 
