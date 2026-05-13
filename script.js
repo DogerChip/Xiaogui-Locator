@@ -509,7 +509,7 @@ class XiaoguiLocator {
     moveMarkerToFolder(markerId, folderId) {
         const marker = this.markers.find(m => m.id === markerId);
         if (marker) {
-            marker.folderId = folderId === 'none' ? null : folderId;
+            marker.folderId = folderId === 'none' ? null : parseInt(folderId);
             this.saveMarkers();
             this.renderMarkers();
         }
