@@ -2,8 +2,10 @@ class XiaoguiLocator {
     constructor() {
         this.currentPosition = null;
         this.markers = this.loadMarkers();
+        this.folders = this.loadFolders();
         this.editingMarkerId = null;
         this.deletingMarkerId = null;
+        this.movingMarkerId = null;
         this.lastMarkerTime = null;
         this.map = null;
         this.currentMarker = null;
@@ -16,6 +18,7 @@ class XiaoguiLocator {
         this.initMap();
         this.setupEventListeners();
         this.getCurrentLocation();
+        this.renderFolders();
         this.renderMarkers();
         this.updateLastRecord();
         this.startTimeUpdate();
@@ -90,6 +93,7 @@ class XiaoguiLocator {
 
     setupEventListeners() {
         document.getElementById('markButton').addEventListener('click', () => this.markCurrentLocation());
+        document.getElementById('createFolderBtn').addEventListener('click', () => this.openCreateFolderModal());
         
         document.getElementById('modalClose').addEventListener('click', () => this.closeRenameModal());
         document.getElementById('btnCancel').addEventListener('click', () => this.closeRenameModal());
@@ -285,19 +289,27 @@ class XiaoguiLocator {
             return;
         }
 
-        container.innerHTML = this.markers.map(marker => {
+        const sortedMarkers = [...this.markers].sort((a, b) => 
+            new Date(b.createdAt) - new Date(a.createdAt)
+        );
+
+        container.innerHTML = sortedMarkers.map(marker => {
             const time = this.formatTime(new Date(marker.createdAt));
+            const folder = this.folders.find(f => f.id === marker.folderId);
+            const folderName = folder ? folder.name : '未分类';
             return `
                 <div class="marker-card" data-id="${marker.id}">
                     <div class="marker-header">
                         <span class="marker-name">${marker.name}</span>
                         <span class="marker-time">${time}</span>
                     </div>
+                    <div class="marker-folder">📁 ${folderName}</div>
                     <div class="marker-coords">
                         <span>📍 ${marker.latitude.toFixed(4)}, ${marker.longitude.toFixed(4)}</span>
                     </div>
                     <div class="marker-actions">
                         <button class="action-btn edit-btn" data-id="${marker.id}">✏️ 重命名</button>
+                        <button class="action-btn move-btn" data-id="${marker.id}">📁 移动</button>
                         <button class="action-btn delete-btn" data-id="${marker.id}">🗑️ 删除</button>
                     </div>
                 </div>
@@ -310,6 +322,13 @@ class XiaoguiLocator {
             btn.addEventListener('click', (e) => {
                 const id = parseInt(e.target.getAttribute('data-id'));
                 this.openRenameModal(id);
+            });
+        });
+
+        document.querySelectorAll('.move-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const id = parseInt(e.target.getAttribute('data-id'));
+                this.openMoveModal(id);
             });
         });
 
@@ -437,6 +456,66 @@ class XiaoguiLocator {
         return saved ? JSON.parse(saved) : [];
     }
 
+    saveFolders() {
+        localStorage.setItem('xiaoguiLocatorFolders', JSON.stringify(this.folders));
+    }
+
+    loadFolders() {
+        const saved = localStorage.getItem('xiaoguiLocatorFolders');
+        return saved ? JSON.parse(saved) : [];
+    }
+
+    createFolder(name) {
+        const newFolder = {
+            id: Date.now(),
+            name: name,
+            color: this.getRandomColor(),
+            createdAt: new Date().toISOString()
+        };
+        this.folders.push(newFolder);
+        this.saveFolders();
+        this.renderFolders();
+        return newFolder;
+    }
+
+    deleteFolder(folderId) {
+        this.markers.forEach(marker => {
+            if (marker.folderId === folderId) {
+                marker.folderId = null;
+            }
+        });
+        this.folders = this.folders.filter(f => f.id !== folderId);
+        this.saveFolders();
+        this.saveMarkers();
+        this.renderFolders();
+        this.renderMarkers();
+    }
+
+    renameFolder(folderId, newName) {
+        const folder = this.folders.find(f => f.id === folderId);
+        if (folder) {
+            folder.name = newName;
+            this.saveFolders();
+            this.renderFolders();
+            this.renderMarkers();
+        }
+    }
+
+    getRandomColor() {
+        const colors = ['#667eea', '#28a745', '#dc3545', '#ffc107', '#17a2b8', '#6f42c1', '#e83e8c', '#fd7e14'];
+        return colors[Math.floor(Math.random() * colors.length)];
+    }
+
+    moveMarkerToFolder(markerId, folderId) {
+        const marker = this.markers.find(m => m.id === markerId);
+        if (marker) {
+            marker.folderId = folderId === 'none' ? null : folderId;
+            this.saveMarkers();
+            this.renderMarkers();
+        }
+        this.closeMoveModal();
+    }
+
     startTimeUpdate() {
         // 每30秒更新一次时间显示
         if (this.timeUpdateInterval) {
@@ -445,6 +524,194 @@ class XiaoguiLocator {
         this.timeUpdateInterval = setInterval(() => {
             this.updateLastRecord();
         }, 30000);
+    }
+
+    renderFolders() {
+        const container = document.getElementById('foldersContainer');
+        if (!container) return;
+
+        if (this.folders.length === 0) {
+            container.innerHTML = `
+                <div class="empty-folders">
+                    <span class="empty-folders-text">暂无文件夹</span>
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = this.folders.map(folder => {
+            const count = this.markers.filter(m => m.folderId === folder.id).length;
+            return `
+                <div class="folder-item" data-id="${folder.id}">
+                    <div class="folder-color" style="background-color: ${folder.color}"></div>
+                    <span class="folder-name">${folder.name}</span>
+                    <span class="folder-count">${count}</span>
+                    <div class="folder-actions">
+                        <button class="folder-edit-btn" data-id="${folder.id}">✏️</button>
+                        <button class="folder-delete-btn" data-id="${folder.id}">🗑️</button>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        document.querySelectorAll('.folder-edit-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const id = parseInt(e.target.getAttribute('data-id'));
+                this.openRenameFolderModal(id);
+            });
+        });
+
+        document.querySelectorAll('.folder-delete-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const id = parseInt(e.target.getAttribute('data-id'));
+                if (confirm('确定要删除这个文件夹吗？文件夹中的标记将被移到未分类。')) {
+                    this.deleteFolder(id);
+                }
+            });
+        });
+    }
+
+    openMoveModal(id) {
+        const marker = this.markers.find(m => m.id === id);
+        if (!marker) return;
+
+        this.movingMarkerId = id;
+        const folderOptions = this.folders.map(folder => 
+            `<option value="${folder.id}" ${marker.folderId === folder.id ? 'selected' : ''}>${folder.name}</option>`
+        ).join('');
+
+        const modalHtml = `
+            <div class="modal-overlay" id="moveModalOverlay" style="display: flex;">
+                <div class="modal">
+                    <div class="modal-header">
+                        <h4>📁 移动到文件夹</h4>
+                        <button class="modal-close" id="moveModalClose">✕</button>
+                    </div>
+                    <div class="modal-body">
+                        <select id="folderSelect">
+                            <option value="none" ${!marker.folderId ? 'selected' : ''}>未分类</option>
+                            ${folderOptions}
+                        </select>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-cancel" id="btnMoveCancel">取消</button>
+                        <button class="btn btn-confirm" id="btnMoveConfirm">确认</button>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+
+        document.getElementById('moveModalClose').addEventListener('click', () => this.closeMoveModal());
+        document.getElementById('btnMoveCancel').addEventListener('click', () => this.closeMoveModal());
+        document.getElementById('btnMoveConfirm').addEventListener('click', () => {
+            const folderId = document.getElementById('folderSelect').value;
+            this.moveMarkerToFolder(id, folderId);
+        });
+
+        document.getElementById('moveModalOverlay').addEventListener('click', (e) => {
+            if (e.target === document.getElementById('moveModalOverlay')) {
+                this.closeMoveModal();
+            }
+        });
+    }
+
+    closeMoveModal() {
+        const overlay = document.getElementById('moveModalOverlay');
+        if (overlay) overlay.remove();
+        this.movingMarkerId = null;
+    }
+
+    openRenameFolderModal(id) {
+        const folder = this.folders.find(f => f.id === id);
+        if (!folder) return;
+
+        const modalHtml = `
+            <div class="modal-overlay" id="renameFolderModalOverlay" style="display: flex;">
+                <div class="modal">
+                    <div class="modal-header">
+                        <h4>✏️ 重命名文件夹</h4>
+                        <button class="modal-close" id="renameFolderModalClose">✕</button>
+                    </div>
+                    <div class="modal-body">
+                        <input type="text" id="folderNameInput" placeholder="输入文件夹名称" value="${folder.name}">
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-cancel" id="btnRenameFolderCancel">取消</button>
+                        <button class="btn btn-confirm" id="btnRenameFolderConfirm">确认</button>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+
+        document.getElementById('renameFolderModalClose').addEventListener('click', () => this.closeRenameFolderModal());
+        document.getElementById('btnRenameFolderCancel').addEventListener('click', () => this.closeRenameFolderModal());
+        document.getElementById('btnRenameFolderConfirm').addEventListener('click', () => {
+            const name = document.getElementById('folderNameInput').value.trim();
+            if (name) {
+                this.renameFolder(id, name);
+                this.closeRenameFolderModal();
+            } else {
+                alert('请输入文件夹名称');
+            }
+        });
+
+        document.getElementById('renameFolderModalOverlay').addEventListener('click', (e) => {
+            if (e.target === document.getElementById('renameFolderModalOverlay')) {
+                this.closeRenameFolderModal();
+            }
+        });
+    }
+
+    closeRenameFolderModal() {
+        const overlay = document.getElementById('renameFolderModalOverlay');
+        if (overlay) overlay.remove();
+    }
+
+    openCreateFolderModal() {
+        const modalHtml = `
+            <div class="modal-overlay" id="createFolderModalOverlay" style="display: flex;">
+                <div class="modal">
+                    <div class="modal-header">
+                        <h4>📁 创建文件夹</h4>
+                        <button class="modal-close" id="createFolderModalClose">✕</button>
+                    </div>
+                    <div class="modal-body">
+                        <input type="text" id="newFolderNameInput" placeholder="输入文件夹名称">
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-cancel" id="btnCreateFolderCancel">取消</button>
+                        <button class="btn btn-confirm" id="btnCreateFolderConfirm">确认</button>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+
+        document.getElementById('createFolderModalClose').addEventListener('click', () => this.closeCreateFolderModal());
+        document.getElementById('btnCreateFolderCancel').addEventListener('click', () => this.closeCreateFolderModal());
+        document.getElementById('btnCreateFolderConfirm').addEventListener('click', () => {
+            const name = document.getElementById('newFolderNameInput').value.trim();
+            if (name) {
+                this.createFolder(name);
+                this.closeCreateFolderModal();
+                alert('✅ 文件夹创建成功！');
+            } else {
+                alert('请输入文件夹名称');
+            }
+        });
+
+        document.getElementById('createFolderModalOverlay').addEventListener('click', (e) => {
+            if (e.target === document.getElementById('createFolderModalOverlay')) {
+                this.closeCreateFolderModal();
+            }
+        });
+    }
+
+    closeCreateFolderModal() {
+        const overlay = document.getElementById('createFolderModalOverlay');
+        if (overlay) overlay.remove();
     }
 
     wgs84ToGcj02(lat, lng) {

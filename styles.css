@@ -266,6 +266,100 @@ body {
     border: 2px solid #667eea30;
 }
 
+.folders-section {
+    background: white;
+    border-radius: 20px;
+    padding: 20px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+    margin-bottom: 16px;
+}
+
+.create-folder-btn {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 6px 14px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.create-folder-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.folders-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.folder-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 14px;
+    background: #f8f9fa;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+}
+
+.folder-item:hover {
+    background: #fff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.folder-color {
+    width: 10px;
+    height: 10px;
+    border-radius: 3px;
+    flex-shrink: 0;
+}
+
+.folder-name {
+    flex: 1;
+    font-size: 0.9rem;
+    color: #333;
+    font-weight: 500;
+}
+
+.folder-count {
+    background: #e9ecef;
+    color: #666;
+    font-size: 0.75rem;
+    padding: 3px 10px;
+    border-radius: 10px;
+}
+
+.folder-actions {
+    display: flex;
+    gap: 6px;
+}
+
+.folder-edit-btn, .folder-delete-btn {
+    background: none;
+    border: none;
+    font-size: 0.9rem;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 6px;
+    transition: background 0.3s;
+}
+
+.folder-edit-btn:hover, .folder-delete-btn:hover {
+    background: #e9ecef;
+}
+
+.empty-folders {
+    text-align: center;
+    padding: 20px;
+    color: #999;
+    font-size: 0.9rem;
+}
+
 .markers-section {
     background: white;
     border-radius: 20px;
@@ -355,6 +449,12 @@ body {
     color: #888;
 }
 
+.marker-folder {
+    font-size: 0.8rem;
+    color: #667eea;
+    margin-bottom: 8px;
+}
+
 .marker-coords {
     font-size: 0.85rem;
     color: #555;
@@ -384,6 +484,15 @@ body {
 
 .edit-btn:hover {
     background: #cce5ff;
+}
+
+.move-btn {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.move-btn:hover {
+    background: #ffeeba;
 }
 
 .delete-btn {
@@ -461,7 +570,7 @@ body {
     padding: 20px;
 }
 
-.modal-body input {
+.modal-body input, .modal-body select {
     width: 100%;
     padding: 14px;
     border: 2px solid #e0e0e0;
@@ -471,7 +580,7 @@ body {
     transition: border-color 0.3s;
 }
 
-.modal-body input:focus {
+.modal-body input:focus, .modal-body select:focus {
     border-color: #667eea;
 }
 
